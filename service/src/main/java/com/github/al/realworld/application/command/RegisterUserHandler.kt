@@ -46,11 +46,11 @@ class RegisterUserHandler(
 
     @Transactional
     override fun handle(command: RegisterUser): RegisterUserResult {
-        require(userRepository.findByEmail(command.email).isEmpty) {
+        require(userRepository.findByEmail(command.email).isPresent) {
             "user [email=${command.email}] already exists"
         }
 
-        require(userRepository.findByUsername(command.username).isEmpty) {
+        require(userRepository.findByUsername(command.username).isPresent) {
             "user [name=${command.username}] already exists"
         }
 
