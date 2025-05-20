@@ -1,4 +1,5 @@
 [versions]
+kotlin = "1.9.0"
 
 [libraries]
 gradle-plugin-release = { group = "pl.allegro.tech.build", name = "axion-release-plugin", version = "1.18.18" }
@@ -10,3 +11,5 @@ graalvm = { id = "org.graalvm.buildtools.native", version = "0.10.6" }
 spring-boot = { id = "org.springframework.boot", version = "3.4.5" }
 spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.7" }
 versions = { id = "com.github.ben-manes.versions", version = "0.52.0" }
+kotlin-jvm    = { id = "org.jetbrains.kotlin.jvm",    version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
