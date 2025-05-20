@@ -26,8 +26,11 @@ package com.github.al.realworld.application.command
 import com.github.al.realworld.api.command.UnfollowProfile
 import com.github.al.realworld.api.command.UnfollowProfileResult
 import com.github.al.realworld.application.ProfileAssembler
+import com.github.al.realworld.application.ProfileAssembler.*
 import com.github.al.realworld.application.exception.BadRequestException
+import com.github.al.realworld.application.exception.BadRequestException.*
 import com.github.al.realworld.application.exception.NotFoundException
+import com.github.al.realworld.application.exception.NotFoundException.*
 import com.github.al.realworld.bus.CommandHandler
 import com.github.al.realworld.domain.model.FollowRelation
 import com.github.al.realworld.domain.model.User
@@ -49,10 +52,10 @@ class UnfollowProfileHandler(
     @Transactional
     override fun handle(command: UnfollowProfile): UnfollowProfileResult {
         val currentUser = userRepository.findByUsername(command.follower)
-            ?: throw BadRequestException.badRequest("user [name=%s] does not exist", command.follower)
+            ?: throw badRequest("user [name=%s] does not exist", command.follower)
 
         val followee = userRepository.findByUsername(command.followee)
-            ?: throw NotFoundException.notFound("user [name=%s] does not exist", command.followee)
+            ?: throw notFound("user [name=%s] does not exist", command.followee)
 
         followRelationRepository.deleteByFollowerAndFollowee(currentUser, followee)
 
@@ -63,6 +66,6 @@ class UnfollowProfileHandler(
 
         userRepository.save(alteredFollowee)
 
-        return UnfollowProfileResult(ProfileAssembler.assemble(alteredFollowee, currentUser))
+        return UnfollowProfileResult(assemble(alteredFollowee, currentUser))
     }
 }

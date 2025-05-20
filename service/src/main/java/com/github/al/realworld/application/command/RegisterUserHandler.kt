@@ -27,6 +27,7 @@ import com.github.al.realworld.api.command.RegisterUser
 import com.github.al.realworld.api.command.RegisterUserResult
 import com.github.al.realworld.application.UserAssembler
 import com.github.al.realworld.application.exception.BadRequestException
+import com.github.al.realworld.application.exception.BadRequestException.badRequest
 import com.github.al.realworld.application.service.JwtService
 import com.github.al.realworld.bus.CommandHandler
 import com.github.al.realworld.domain.model.User
@@ -47,11 +48,11 @@ class RegisterUserHandler(
     @Transactional
     override fun handle(command: RegisterUser): RegisterUserResult {
         require(userRepository.findByEmail(command.email) == null) {
-            "user [email=${command.email}] already exists"
+            throw badRequest("user [email=${command.email}] already exists")
         }
 
         require(userRepository.findByUsername(command.username) == null) {
-            "user [name=${command.username}] already exists"
+            throw badRequest("user [name=${command.username}] already exists")
         }
 
         val user = User(
