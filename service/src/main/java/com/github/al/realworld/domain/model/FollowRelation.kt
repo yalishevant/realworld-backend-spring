@@ -21,25 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.domain.model;
+package com.github.al.realworld.domain.model
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.EmbeddedId
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.MapsId
+import jakarta.persistence.Table
 
-import jakarta.persistence.Embeddable;
-import java.io.Serializable;
-import java.util.UUID;
+@Entity
+@Table(name = "tbl_follow_relation")
+data class FollowRelation(
+    @EmbeddedId
+    var id: FollowRelationId = FollowRelationId(),
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@EqualsAndHashCode
-@Embeddable
-public class FollowRelationId implements Serializable {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("followerId")
+    var follower: User? = null,
 
-    private UUID followerId;
-    private UUID followeeId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("followeeId")
+    var followee: User? = null
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
+        other as FollowRelation
+
+        if (follower != other.follower) return false
+        if (followee != other.followee) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = follower?.hashCode() ?: 0
+        result = 31 * result + (followee?.hashCode() ?: 0)
+        return result
+    }
 }
