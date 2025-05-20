@@ -21,18 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.infrastructure.db.jpa;
+package com.github.al.realworld.infrastructure.db.jpa
 
-import com.github.al.realworld.domain.model.User;
-import org.springframework.data.repository.CrudRepository;
+import com.github.al.realworld.domain.model.User
+import com.github.al.realworld.domain.repository.UserRepository
+import org.springframework.stereotype.Repository
 
-import java.util.Optional;
-import java.util.UUID;
+@Repository
+class JpaUserRepositoryAdapter(
+    private val repository: DataUserRepository
+) : UserRepository {
 
-public interface DataUserRepository extends CrudRepository<User, UUID> {
+    override fun findByEmail(email: String): User? {
+        return repository.findByEmail(email)
+    }
 
-    Optional<User> findByEmail(String email);
+    override fun findByUsername(username: String): User? {
+        return repository.findByUsername(username)
+    }
 
-    Optional<User> findByUsername(String username);
-
+    override fun save(user: User): User {
+        return repository.save(user)
+    }
 }

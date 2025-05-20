@@ -39,11 +39,10 @@ class GetProfileHandler(
 
     @Transactional(readOnly = true)
     override fun handle(query: GetProfile): GetProfileResult {
-        val currentUser = userRepository.findByUsername(query.currentUsername)
-            .orElse(null)
+        val currentUser = if (query.currentUsername != null) userRepository.findByUsername(query.currentUsername) else null
 
         val user = userRepository.findByUsername(query.username)
-            .orElseThrow { NotFoundException.notFound("user [name=%s] does not exist", query.username) }
+            ?: throw NotFoundException.notFound("user [name=%s] does not exist", query.username)
 
         return GetProfileResult(ProfileAssembler.assemble(user, currentUser))
     }

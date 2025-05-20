@@ -44,8 +44,7 @@ class GetArticlesHandler(
         val articles = articleRepository
             .findByFilters(query.tag, query.author, query.favorited, query.limit, query.offset)
 
-        val currentUser = userRepository.findByUsername(query.currentUsername)
-            .orElse(null)
+        val currentUser = if (query.currentUsername != null) userRepository.findByUsername(query.currentUsername) else null
 
         val results = mutableListOf<ArticleDto>()
 

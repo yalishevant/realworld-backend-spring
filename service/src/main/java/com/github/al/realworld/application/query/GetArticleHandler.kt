@@ -44,8 +44,7 @@ class GetArticleHandler(
         val article = articleRepository.findBySlug(query.slug)
             .orElseThrow { NotFoundException.notFound("article [slug=%s] does not exists", query.slug) }
 
-        val currentUser = userRepository.findByUsername(query.currentUsername)
-            .orElse(null)
+        val currentUser = if (query.currentUsername != null) userRepository.findByUsername(query.currentUsername) else null
 
         return GetArticleResult(ArticleAssembler.assemble(article, currentUser))
     }

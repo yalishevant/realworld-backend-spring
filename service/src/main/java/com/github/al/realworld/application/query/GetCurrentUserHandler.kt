@@ -42,7 +42,7 @@ class GetCurrentUserHandler(
     @Transactional(readOnly = true)
     override fun handle(query: GetCurrentUser): GetCurrentUserResult {
         val user = userRepository.findByUsername(query.username)
-            .orElseThrow { BadRequestException.badRequest("user [name=%s] does not exist", query.username) }
+            ?: throw BadRequestException.badRequest("user [name=%s] does not exist", query.username)
 
         return GetCurrentUserResult(UserAssembler.assemble(user, jwtService))
     }

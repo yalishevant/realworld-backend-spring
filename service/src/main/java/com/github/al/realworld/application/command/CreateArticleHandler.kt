@@ -53,7 +53,7 @@ class CreateArticleHandler(
         }
 
         val currentUser = userRepository.findByUsername(command.currentUsername)
-            .orElseThrow { IllegalArgumentException("user [name=${command.currentUsername}] does not exist") }
+            ?: throw IllegalArgumentException("user [name=${command.currentUsername}] does not exist")
 
         val now = ZonedDateTime.now()
 

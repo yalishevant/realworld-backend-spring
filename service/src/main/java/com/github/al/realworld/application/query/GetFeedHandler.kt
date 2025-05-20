@@ -45,7 +45,7 @@ class GetFeedHandler(
     @Transactional(readOnly = true)
     override fun handle(query: GetFeed): GetFeedResult {
         val currentUser = userRepository.findByUsername(query.currentUsername)
-            .orElseThrow { BadRequestException.badRequest("user [name=%s] does not exist", query.currentUsername) }
+            ?: throw BadRequestException.badRequest("user [name=%s] does not exist", query.currentUsername)
 
         val relations = followRelationRepository.findByFollowerId(currentUser.id)
 

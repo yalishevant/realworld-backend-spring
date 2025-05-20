@@ -45,7 +45,7 @@ class LoginUserHandler(
     @Transactional
     override fun handle(command: LoginUser): LoginUserResult {
         val user = userRepository.findByEmail(command.email)
-            .orElseThrow { BadRequestException.badRequest("user [email=%s] does not exist", command.email) }
+            ?: throw BadRequestException.badRequest("user [email=%s] does not exist", command.email)
 
         if (!passwordEncoder.matches(command.password, user.password)) {
             throw UnauthorizedException.unauthorized("user [email=%s] password is incorrect", command.email)

@@ -48,10 +48,10 @@ class FollowProfileHandler(
     @Transactional
     override fun handle(command: FollowProfile): FollowProfileResult {
         val currentUser = userRepository.findByUsername(command.follower)
-            .orElseThrow { BadRequestException.badRequest("user [name=%s] does not exist", command.follower) }
+            ?: throw BadRequestException.badRequest("user [name=%s] does not exist", command.follower)
 
         val followee = userRepository.findByUsername(command.followee)
-            .orElseThrow { NotFoundException.notFound("user [name=%s] does not exist", command.followee) }
+            ?: throw NotFoundException.notFound("user [name=%s] does not exist", command.followee)
 
         val follow = FollowRelation(
             FollowRelationId(currentUser.id, followee.id),

@@ -49,10 +49,10 @@ class UnfollowProfileHandler(
     @Transactional
     override fun handle(command: UnfollowProfile): UnfollowProfileResult {
         val currentUser = userRepository.findByUsername(command.follower)
-            .orElseThrow { BadRequestException.badRequest("user [name=%s] does not exist", command.follower) }
+            ?: throw BadRequestException.badRequest("user [name=%s] does not exist", command.follower)
 
         val followee = userRepository.findByUsername(command.followee)
-            .orElseThrow { NotFoundException.notFound("user [name=%s] does not exist", command.followee) }
+            ?: throw NotFoundException.notFound("user [name=%s] does not exist", command.followee)
 
         followRelationRepository.deleteByFollowerAndFollowee(currentUser, followee)
 
@@ -60,7 +60,7 @@ class UnfollowProfileHandler(
 
         // Use clearFollowers() and addFollowers() methods instead of toBuilder()
         val alteredFollowee = followee.clearFollowers().addFollowers(filteredFollowers)
-        
+
         userRepository.save(alteredFollowee)
 
         return UnfollowProfileResult(ProfileAssembler.assemble(alteredFollowee, currentUser))

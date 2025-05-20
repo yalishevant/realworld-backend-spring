@@ -46,17 +46,17 @@ class UpdateUserHandler(
     @Transactional
     override fun handle(command: UpdateUser): UpdateUserResult {
         val user = userRepository.findByUsername(command.currentUsername)
-            .orElseThrow { NotFoundException.notFound("user [name=%s] does not exist", command.currentUsername) }
+            ?: throw NotFoundException.notFound("user [name=%s] does not exist", command.currentUsername)
 
         if (command.username != null
             && command.username != user.username
-            && userRepository.findByUsername(command.username).isPresent) {
+            && userRepository.findByUsername(command.username) != null) {
             throw BadRequestException.badRequest("user [name=%s] already exists", command.username)
         }
 
         if (command.email != null
             && command.email != user.email
-            && userRepository.findByEmail(command.email).isPresent) {
+            && userRepository.findByEmail(command.email) != null) {
             throw BadRequestException.badRequest("user [email=%s] already exists", command.email)
         }
 

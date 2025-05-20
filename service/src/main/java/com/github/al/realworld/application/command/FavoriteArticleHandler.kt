@@ -46,7 +46,7 @@ class FavoriteArticleHandler(
             .orElseThrow { NotFoundException.notFound("article [slug=%s] does not exist", command.slug) }
 
         val currentUser = userRepository.findByUsername(command.currentUsername)
-            .orElseThrow { BadRequestException.badRequest("user [name=%s] does not exist", command.currentUsername) }
+            ?: throw BadRequestException.badRequest("user [name=%s] does not exist", command.currentUsername)
 
         article.favoredUser(currentUser)
 

@@ -21,17 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.domain.repository;
+package com.github.al.realworld.domain.repository
 
-import com.github.al.realworld.domain.model.User;
+import com.github.al.realworld.domain.model.User
 
-import java.util.Optional;
+interface UserRepository {
 
-public interface UserRepository {
+    fun findByEmail(email: String): User?
 
-    Optional<User> findByEmail(String email);
+    fun findByUsername(username: String): User?
 
-    Optional<User> findByUsername(String username);
-
-    User save(User user);
+    fun save(user: User): User
 }
