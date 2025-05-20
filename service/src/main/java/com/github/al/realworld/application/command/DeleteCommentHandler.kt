@@ -21,54 +21,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application.command;
+package com.github.al.realworld.application.command
 
-import com.github.al.realworld.api.command.DeleteComment;
-import com.github.al.realworld.api.command.DeleteCommentResult;
-import com.github.al.realworld.bus.CommandHandler;
-import com.github.al.realworld.domain.model.Article;
-import com.github.al.realworld.domain.model.Comment;
-import com.github.al.realworld.domain.repository.ArticleRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.github.al.realworld.api.command.DeleteComment
+import com.github.al.realworld.api.command.DeleteCommentResult
+import com.github.al.realworld.application.exception.ForbiddenException
+import com.github.al.realworld.application.exception.NotFoundException
+import com.github.al.realworld.bus.CommandHandler
+import com.github.al.realworld.domain.repository.ArticleRepository
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.github.al.realworld.application.exception.ForbiddenException.forbidden;
-import static com.github.al.realworld.application.exception.NotFoundException.notFound;
-
-@RequiredArgsConstructor
 @Service
-public class DeleteCommentHandler implements CommandHandler<DeleteCommentResult, DeleteComment> {
-
-    private final ArticleRepository articleRepository;
+class DeleteCommentHandler(
+    private val articleRepository: ArticleRepository
+) : CommandHandler<DeleteCommentResult, DeleteComment> {
 
     @Transactional
-    @Override
-    public DeleteCommentResult handle(DeleteComment command) {
-        Article article = articleRepository.findBySlug(command.getSlug())
-                .orElseThrow(() -> notFound("article [slug=%s] does not exist", command.getSlug()));
+    override fun handle(command: DeleteComment): DeleteCommentResult {
+        val article = articleRepository.findBySlug(command.slug)
+            .orElseThrow { NotFoundException.notFound("article [slug=%s] does not exist", command.slug) }
 
-        Comment comment = article.getComments().stream()
-                .filter(c -> c.getId().equals(command.getId()))
-                .findFirst()
-                .orElseThrow(() -> notFound("comment [id=%s] does not exist", command.getId()));
+        val comment = article.comments.stream()
+            .filter { c -> c.id == command.id }
+            .findFirst()
+            .orElseThrow { NotFoundException.notFound("comment [id=%s] does not exist", command.id) }
 
-        if (!comment.getAuthor().getUsername().equals(command.getCurrentUsername())) {
-            throw forbidden("comment [id=%s] is not owned by %s", comment.getId(), command.getCurrentUsername());
+        if (comment.author!!.username != command.currentUsername) {
+            throw ForbiddenException.forbidden("comment [id=%s] is not owned by %s", comment.id, command.currentUsername)
         }
 
-        Set<Comment> alteredComments = article.getComments().stream()
-                .filter(comment1 -> Objects.equals(comment1, comment))
-                .collect(Collectors.toSet());
+        // Filter out the comment to be deleted
+        val alteredComments = article.comments.filter { it != comment }.toSet()
 
-        Article alteredArticle = article.toBuilder().comments(alteredComments).build();
-        articleRepository.save(alteredArticle);
+        article.comments(alteredComments)
+        articleRepository.save(article)
 
-        return new DeleteCommentResult();
+        return DeleteCommentResult()
     }
-
 }

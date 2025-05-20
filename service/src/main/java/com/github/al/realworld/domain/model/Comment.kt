@@ -21,41 +21,87 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.domain.model;
+package com.github.al.realworld.domain.model
 
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Lob
+import jakarta.persistence.OneToOne
+import jakarta.persistence.Table
+import java.time.ZonedDateTime
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.OneToOne;
-import java.time.ZonedDateTime;
-
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Getter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "tbl_comment")
-public class Comment {
-
-    @EqualsAndHashCode.Include
+data class Comment(
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-    private ZonedDateTime createdAt;
-    private ZonedDateTime updatedAt;
+    var id: Long? = null,
+    
+    var createdAt: ZonedDateTime? = null,
+    var updatedAt: ZonedDateTime? = null,
+    
     @Lob
-    private String body;
+    var body: String? = null,
+    
     @OneToOne
-    private User author;
+    var author: User? = null
+) {
+    // No-args constructor required by JPA
+    constructor() : this(null, null, null, null, null)
 
+    // Builder-like methods for compatibility
+    companion object {
+        fun builder(): Builder {
+            return Builder()
+        }
+    }
+
+    class Builder {
+        private val comment = Comment()
+
+        fun id(id: Long?): Builder {
+            comment.id = id
+            return this
+        }
+
+        fun createdAt(createdAt: ZonedDateTime?): Builder {
+            comment.createdAt = createdAt
+            return this
+        }
+
+        fun updatedAt(updatedAt: ZonedDateTime?): Builder {
+            comment.updatedAt = updatedAt
+            return this
+        }
+
+        fun body(body: String?): Builder {
+            comment.body = body
+            return this
+        }
+
+        fun author(author: User?): Builder {
+            comment.author = author
+            return this
+        }
+
+        fun build(): Comment {
+            return comment
+        }
+    }
+
+    // Override equals and hashCode to use only ID for comparison (JPA best practice)
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Comment
+
+        return id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return id?.hashCode() ?: 0
+    }
 }

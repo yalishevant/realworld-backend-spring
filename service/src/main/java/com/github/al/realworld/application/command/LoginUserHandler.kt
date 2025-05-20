@@ -21,43 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application.command;
+package com.github.al.realworld.application.command
 
-import com.github.al.realworld.api.command.LoginUser;
-import com.github.al.realworld.api.command.LoginUserResult;
-import com.github.al.realworld.application.UserAssembler;
-import com.github.al.realworld.application.service.JwtService;
-import com.github.al.realworld.bus.CommandHandler;
-import com.github.al.realworld.domain.model.User;
-import com.github.al.realworld.domain.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
+import com.github.al.realworld.api.command.LoginUser
+import com.github.al.realworld.api.command.LoginUserResult
+import com.github.al.realworld.application.UserAssembler
+import com.github.al.realworld.application.exception.BadRequestException
+import com.github.al.realworld.application.exception.UnauthorizedException
+import com.github.al.realworld.application.service.JwtService
+import com.github.al.realworld.bus.CommandHandler
+import com.github.al.realworld.domain.repository.UserRepository
+import jakarta.transaction.Transactional
+import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.stereotype.Service
 
-import jakarta.transaction.Transactional;
-
-import static com.github.al.realworld.application.exception.BadRequestException.badRequest;
-import static com.github.al.realworld.application.exception.UnauthorizedException.unauthorized;
-
-@RequiredArgsConstructor
 @Service
-public class LoginUserHandler implements CommandHandler<LoginUserResult, LoginUser> {
-
-    private final UserRepository userRepository;
-    private final JwtService jwtService;
-    private final PasswordEncoder passwordEncoder;
+class LoginUserHandler(
+    private val userRepository: UserRepository,
+    private val jwtService: JwtService,
+    private val passwordEncoder: PasswordEncoder
+) : CommandHandler<LoginUserResult, LoginUser> {
 
     @Transactional
-    @Override
-    public LoginUserResult handle(LoginUser command) {
-        User user = userRepository.findByEmail(command.getEmail())
-                .orElseThrow(() -> badRequest("user [email=%s] does not exist", command.getEmail()));
+    override fun handle(command: LoginUser): LoginUserResult {
+        val user = userRepository.findByEmail(command.email)
+            .orElseThrow { BadRequestException.badRequest("user [email=%s] does not exist", command.email) }
 
-        if (!passwordEncoder.matches(command.getPassword(), user.getPassword())) {
-            throw unauthorized("user [email=%s] password is incorrect", command.getEmail());
+        if (!passwordEncoder.matches(command.password, user.password)) {
+            throw UnauthorizedException.unauthorized("user [email=%s] password is incorrect", command.email)
         }
 
-        return new LoginUserResult(UserAssembler.assemble(user, jwtService));
+        return LoginUserResult(UserAssembler.assemble(user, jwtService))
     }
-
 }

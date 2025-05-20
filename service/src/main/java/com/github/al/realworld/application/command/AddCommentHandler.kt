@@ -21,63 +21,55 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application.command;
+package com.github.al.realworld.application.command
 
-import com.github.al.realworld.api.command.AddComment;
-import com.github.al.realworld.api.command.AddCommentResult;
-import com.github.al.realworld.application.CommentAssembler;
-import com.github.al.realworld.bus.CommandHandler;
-import com.github.al.realworld.domain.model.Article;
-import com.github.al.realworld.domain.model.Comment;
-import com.github.al.realworld.domain.model.User;
-import com.github.al.realworld.domain.repository.ArticleRepository;
-import com.github.al.realworld.domain.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.github.al.realworld.api.command.AddComment
+import com.github.al.realworld.api.command.AddCommentResult
+import com.github.al.realworld.application.CommentAssembler
+import com.github.al.realworld.application.exception.BadRequestException
+import com.github.al.realworld.application.exception.NotFoundException
+import com.github.al.realworld.bus.CommandHandler
+import com.github.al.realworld.domain.model.Comment
+import com.github.al.realworld.domain.repository.ArticleRepository
+import com.github.al.realworld.domain.repository.UserRepository
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.time.ZonedDateTime
 
-import java.time.ZonedDateTime;
-
-import static com.github.al.realworld.application.exception.BadRequestException.badRequest;
-import static com.github.al.realworld.application.exception.NotFoundException.notFound;
-
-@RequiredArgsConstructor
 @Service
-public class AddCommentHandler implements CommandHandler<AddCommentResult, AddComment> {
-
-    private final ArticleRepository articleRepository;
-    private final UserRepository userRepository;
+class AddCommentHandler(
+    private val articleRepository: ArticleRepository,
+    private val userRepository: UserRepository
+) : CommandHandler<AddCommentResult, AddComment> {
 
     @Transactional
-    @Override
-    public AddCommentResult handle(AddComment command) {
-        Article article = articleRepository.findBySlug(command.getSlug())
-                .orElseThrow(() -> notFound("article [slug=%s] does not exist", command.getSlug()));
+    override fun handle(command: AddComment): AddCommentResult {
+        val article = articleRepository.findBySlug(command.slug)
+            .orElseThrow { NotFoundException.notFound("article [slug=%s] does not exist", command.slug) }
 
-        User currentUser = userRepository.findByUsername(command.getCurrentUsername())
-                .orElseThrow(() -> badRequest("user [name=%s] does not exist", command.getCurrentUsername()));
+        val currentUser = userRepository.findByUsername(command.currentUsername)
+            .orElseThrow { BadRequestException.badRequest("user [name=%s] does not exist", command.currentUsername) }
 
-        ZonedDateTime now = ZonedDateTime.now();
+        val now = ZonedDateTime.now()
 
-        Comment comment = Comment.builder()
-                .body(command.getBody())
-                .createdAt(now)
-                .updatedAt(now)
-                .author(currentUser)
-                .build();
+        val comment = Comment(
+            body = command.body,
+            createdAt = now,
+            updatedAt = now,
+            author = currentUser
+        )
 
-        Article alteredArticle = article.toBuilder().comment(comment).build();
+        article.comment(comment)
 
-        Article savedArticle = articleRepository.save(alteredArticle);
+        val savedArticle = articleRepository.save(article)
 
-        Comment savedComment = savedArticle.getComments().stream()
-                .filter(c -> c.getCreatedAt().equals(comment.getCreatedAt()))
-                .filter(c -> c.getAuthor().equals(comment.getAuthor()))
-                .findFirst()
-                // should never happen
-                .orElseThrow(() -> new RuntimeException("saved comment not found"));
+        val savedComment = savedArticle.comments.stream()
+            .filter { c -> c.createdAt == comment.createdAt }
+            .filter { c -> c.author == comment.author }
+            .findFirst()
+            // should never happen
+            .orElseThrow { RuntimeException("saved comment not found") }
 
-        return new AddCommentResult(CommentAssembler.assemble(savedComment, currentUser));
+        return AddCommentResult(CommentAssembler.assemble(savedComment, currentUser))
     }
-
 }

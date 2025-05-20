@@ -21,60 +21,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application.command;
+package com.github.al.realworld.application.command
 
-import com.github.al.realworld.api.command.UpdateArticle;
-import com.github.al.realworld.api.command.UpdateArticleResult;
-import com.github.al.realworld.application.ArticleAssembler;
-import com.github.al.realworld.application.service.SlugService;
-import com.github.al.realworld.bus.CommandHandler;
-import com.github.al.realworld.domain.model.Article;
-import com.github.al.realworld.domain.model.User;
-import com.github.al.realworld.domain.repository.ArticleRepository;
-import com.github.al.realworld.domain.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.github.al.realworld.api.command.UpdateArticle
+import com.github.al.realworld.api.command.UpdateArticleResult
+import com.github.al.realworld.application.ArticleAssembler
+import com.github.al.realworld.application.exception.BadRequestException
+import com.github.al.realworld.application.exception.ForbiddenException
+import com.github.al.realworld.application.exception.NotFoundException
+import com.github.al.realworld.application.service.SlugService
+import com.github.al.realworld.bus.CommandHandler
+import com.github.al.realworld.domain.repository.ArticleRepository
+import com.github.al.realworld.domain.repository.UserRepository
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.time.ZonedDateTime
 
-import java.time.ZonedDateTime;
-import java.util.Objects;
-
-import static com.github.al.realworld.application.exception.BadRequestException.badRequest;
-import static com.github.al.realworld.application.exception.ForbiddenException.forbidden;
-import static com.github.al.realworld.application.exception.NotFoundException.notFound;
-
-@RequiredArgsConstructor
 @Service
-public class UpdateArticleHandler implements CommandHandler<UpdateArticleResult, UpdateArticle> {
-
-    private final ArticleRepository articleRepository;
-    private final UserRepository userRepository;
-    private final SlugService slugService;
+class UpdateArticleHandler(
+    private val articleRepository: ArticleRepository,
+    private val userRepository: UserRepository,
+    private val slugService: SlugService
+) : CommandHandler<UpdateArticleResult, UpdateArticle> {
 
     @Transactional
-    @Override
-    public UpdateArticleResult handle(UpdateArticle command) {
-        Article article = articleRepository.findBySlug(command.getSlug())
-                .orElseThrow(() -> notFound("article [slug=%s] does not exist", command.getSlug()));
+    override fun handle(command: UpdateArticle): UpdateArticleResult {
+        val article = articleRepository.findBySlug(command.slug)
+            .orElseThrow { NotFoundException.notFound("article [slug=%s] does not exist", command.slug) }
 
-        if (!Objects.equals(article.getAuthor().getUsername(), command.getCurrentUsername())) {
-            throw forbidden("article [slug=%s] is not owned by %s", command.getSlug(), command.getCurrentUsername());
+        if (article.author!!.username != command.currentUsername) {
+            throw ForbiddenException.forbidden("article [slug=%s] is not owned by %s", command.slug, command.currentUsername)
         }
 
-        User currentUser = userRepository.findByUsername(command.getCurrentUsername())
-                .orElseThrow(() -> badRequest("user [name=%s] does not exist", command.getCurrentUsername()));
+        val currentUser = userRepository.findByUsername(command.currentUsername)
+            .orElseThrow { BadRequestException.badRequest("user [name=%s] does not exist", command.currentUsername) }
 
-        Article alteredArticle = article.toBuilder()
-                .slug(command.getTitle() != null ? slugService.makeSlug(command.getTitle()) : article.getSlug())
-                .title(command.getTitle() != null ? command.getTitle() : article.getTitle())
-                .description(command.getDescription() != null ? command.getDescription() : article.getDescription())
-                .body(command.getBody() != null ? command.getBody() : article.getBody())
-                .updatedAt(ZonedDateTime.now())
-                .build();
+        val alteredArticle = article.copy(
+            slug = command.title?.let { slugService.makeSlug(it) } ?: article.slug,
+            title = command.title ?: article.title,
+            description = command.description ?: article.description,
+            body = command.body ?: article.body,
+            updatedAt = ZonedDateTime.now()
+        )
 
-        articleRepository.save(alteredArticle);
+        articleRepository.save(alteredArticle)
 
-        return new UpdateArticleResult(ArticleAssembler.assemble(alteredArticle, currentUser));
+        return UpdateArticleResult(ArticleAssembler.assemble(alteredArticle, currentUser))
     }
-
 }

@@ -21,70 +21,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application.command;
+package com.github.al.realworld.application.command
 
-import com.github.al.realworld.api.command.CreateArticle;
-import com.github.al.realworld.api.command.CreateArticleResult;
-import com.github.al.realworld.application.ArticleAssembler;
-import com.github.al.realworld.application.service.SlugService;
-import com.github.al.realworld.bus.CommandHandler;
-import com.github.al.realworld.domain.model.Article;
-import com.github.al.realworld.domain.model.Tag;
-import com.github.al.realworld.domain.model.User;
-import com.github.al.realworld.domain.repository.ArticleRepository;
-import com.github.al.realworld.domain.repository.TagRepository;
-import com.github.al.realworld.domain.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.github.al.realworld.api.command.CreateArticle
+import com.github.al.realworld.api.command.CreateArticleResult
+import com.github.al.realworld.application.ArticleAssembler
+import com.github.al.realworld.application.service.SlugService
+import com.github.al.realworld.bus.CommandHandler
+import com.github.al.realworld.domain.model.Article
+import com.github.al.realworld.domain.model.Tag
+import com.github.al.realworld.domain.repository.ArticleRepository
+import com.github.al.realworld.domain.repository.TagRepository
+import com.github.al.realworld.domain.repository.UserRepository
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.time.ZonedDateTime
+import java.util.UUID
 
-import java.time.ZonedDateTime;
-import java.util.Optional;
-import java.util.UUID;
-
-import static com.github.al.realworld.application.exception.BadRequestException.badRequest;
-
-@RequiredArgsConstructor
 @Service
-public class CreateArticleHandler implements CommandHandler<CreateArticleResult, CreateArticle> {
-
-    private final ArticleRepository articleRepository;
-    private final TagRepository tagRepository;
-    private final UserRepository userRepository;
-    private final SlugService slugService;
+class CreateArticleHandler(
+    private val articleRepository: ArticleRepository,
+    private val tagRepository: TagRepository,
+    private val userRepository: UserRepository,
+    private val slugService: SlugService
+) : CommandHandler<CreateArticleResult, CreateArticle> {
 
     @Transactional
-    @Override
-    public CreateArticleResult handle(CreateArticle command) {
-        Optional<Article> articleByTitleOptional = articleRepository.findByTitle(command.getTitle());
-        if (articleByTitleOptional.isPresent()) {
-            throw badRequest("article [title=%s] already exists", command.getTitle());
+    override fun handle(command: CreateArticle): CreateArticleResult {
+        if (articleRepository.findByTitle(command.title).isPresent) {
+            throw IllegalArgumentException("article [title=${command.title}] already exists")
         }
 
-        User currentUser = userRepository.findByUsername(command.getCurrentUsername())
-                .orElseThrow(() -> badRequest("user [name=%s] does not exist", command.getCurrentUsername()));
+        val currentUser = userRepository.findByUsername(command.currentUsername)
+            .orElseThrow { IllegalArgumentException("user [name=${command.currentUsername}] does not exist") }
 
-        ZonedDateTime now = ZonedDateTime.now();
+        val now = ZonedDateTime.now()
 
-        Article.ArticleBuilder articleBuilder = Article.builder()
-                .id(UUID.randomUUID())
-                .slug(slugService.makeSlug(command.getTitle()))
-                .title(command.getTitle())
-                .description(command.getDescription())
-                .body(command.getBody())
-                .createdAt(now)
-                .updatedAt(now)
-                .author(currentUser);
+        val article = Article(
+            id = UUID.randomUUID(),
+            slug = slugService.makeSlug(command.title),
+            title = command.title,
+            description = command.description,
+            body = command.body,
+            createdAt = now,
+            updatedAt = now,
+            author = currentUser
+        )
 
-        if (command.getTagList() != null) {
-            command.getTagList().stream()
-                    .map(t -> tagRepository.findByName(t).orElseGet(() -> new Tag(t)))
-                    .forEach(articleBuilder::tag);
+        command.tagList?.forEach { tagName ->
+            val tag = tagRepository.findByName(tagName).orElseGet { Tag(tagName) }
+            article.tag(tag)
         }
 
-        Article savedArticle = articleRepository.save(articleBuilder.build());
+        val savedArticle = articleRepository.save(article)
 
-        return new CreateArticleResult(ArticleAssembler.assemble(savedArticle, currentUser));
+        return CreateArticleResult(ArticleAssembler.assemble(savedArticle, currentUser))
     }
-
 }

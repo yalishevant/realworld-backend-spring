@@ -21,31 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.domain.model;
+package com.github.al.realworld.domain.model
 
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-
-@NoArgsConstructor
-@Getter
 @Entity
 @Table(name = "tbl_tag")
-public class Tag {
-
+data class Tag(
     @Id
     @GeneratedValue
-    private Long id;
+    var id: Long? = null,
 
     @Column(unique = true)
-    private String name;
+    var name: String? = null
+) {
+    // No-args constructor required by JPA
+    constructor() : this(null, null)
 
-    public Tag(String name) {
-        this.name = name;
+    // Constructor that takes only name
+    constructor(name: String) : this(null, name)
+
+    // Override equals and hashCode to use only ID for comparison (JPA best practice)
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Tag
+
+        return id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return id?.hashCode() ?: 0
     }
 }

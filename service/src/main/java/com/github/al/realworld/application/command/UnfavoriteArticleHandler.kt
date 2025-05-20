@@ -21,54 +21,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application.command;
+package com.github.al.realworld.application.command
 
-import com.github.al.realworld.api.command.UnfavoriteArticle;
-import com.github.al.realworld.api.command.UnfavoriteArticleResult;
-import com.github.al.realworld.application.ArticleAssembler;
-import com.github.al.realworld.bus.CommandHandler;
-import com.github.al.realworld.domain.model.Article;
-import com.github.al.realworld.domain.model.User;
-import com.github.al.realworld.domain.repository.ArticleRepository;
-import com.github.al.realworld.domain.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.github.al.realworld.api.command.UnfavoriteArticle
+import com.github.al.realworld.api.command.UnfavoriteArticleResult
+import com.github.al.realworld.application.ArticleAssembler
+import com.github.al.realworld.application.exception.BadRequestException
+import com.github.al.realworld.application.exception.NotFoundException
+import com.github.al.realworld.bus.CommandHandler
+import com.github.al.realworld.domain.repository.ArticleRepository
+import com.github.al.realworld.domain.repository.UserRepository
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.github.al.realworld.application.exception.BadRequestException.badRequest;
-import static com.github.al.realworld.application.exception.NotFoundException.notFound;
-
-@RequiredArgsConstructor
 @Service
-public class UnfavoriteArticleHandler implements CommandHandler<UnfavoriteArticleResult, UnfavoriteArticle> {
-
-    private final ArticleRepository articleRepository;
-    private final UserRepository userRepository;
+class UnfavoriteArticleHandler(
+    private val articleRepository: ArticleRepository,
+    private val userRepository: UserRepository
+) : CommandHandler<UnfavoriteArticleResult, UnfavoriteArticle> {
 
     @Transactional
-    @Override
-    public UnfavoriteArticleResult handle(UnfavoriteArticle command) {
-        Article article = articleRepository.findBySlug(command.getSlug())
-                .orElseThrow(() -> notFound("article [slug=%s] does not exist", command.getSlug()));
+    override fun handle(command: UnfavoriteArticle): UnfavoriteArticleResult {
+        val article = articleRepository.findBySlug(command.slug)
+            .orElseThrow { NotFoundException.notFound("article [slug=%s] does not exist", command.slug) }
 
-        User currentUser = userRepository.findByUsername(command.getCurrentUsername())
-                .orElseThrow(() -> badRequest("user [name=%s] does not exist", command.getCurrentUsername()));
+        val currentUser = userRepository.findByUsername(command.currentUsername)
+            .orElseThrow { BadRequestException.badRequest("user [name=%s] does not exist", command.currentUsername) }
 
-        Set<User> alteredFavoritedProfiles = article.getFavoredUsers().stream()
-                .filter(favoritedUser -> !Objects.equals(favoritedUser, currentUser))
-                .collect(Collectors.toSet());
+        val alteredFavoritedProfiles = article.favoredUsers.filter { it != currentUser }.toSet()
 
-        Article alteredArticle = article.toBuilder()
-                .clearFavoredUsers()
-                .favoredUsers(alteredFavoritedProfiles)
-                .build();
+        article.clearFavoredUsers()
+        article.favoredUsers(alteredFavoritedProfiles)
 
-        Article savedArticle = articleRepository.save(alteredArticle);
+        val savedArticle = articleRepository.save(article)
 
-        return new UnfavoriteArticleResult(ArticleAssembler.assemble(savedArticle, currentUser));
+        return UnfavoriteArticleResult(ArticleAssembler.assemble(savedArticle, currentUser))
     }
 }

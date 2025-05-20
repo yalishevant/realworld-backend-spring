@@ -21,41 +21,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application.command;
+package com.github.al.realworld.application.command
 
-import com.github.al.realworld.api.command.DeleteArticle;
-import com.github.al.realworld.api.command.DeleteArticleResult;
-import com.github.al.realworld.bus.CommandHandler;
-import com.github.al.realworld.domain.model.Article;
-import com.github.al.realworld.domain.repository.ArticleRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.github.al.realworld.api.command.DeleteArticle
+import com.github.al.realworld.api.command.DeleteArticleResult
+import com.github.al.realworld.application.exception.ForbiddenException
+import com.github.al.realworld.application.exception.NotFoundException
+import com.github.al.realworld.bus.CommandHandler
+import com.github.al.realworld.domain.repository.ArticleRepository
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.util.Objects
 
-import java.util.Objects;
-
-import static com.github.al.realworld.application.exception.ForbiddenException.forbidden;
-import static com.github.al.realworld.application.exception.NotFoundException.notFound;
-
-@RequiredArgsConstructor
 @Service
-public class DeleteArticleHandler implements CommandHandler<DeleteArticleResult, DeleteArticle> {
-
-    private final ArticleRepository articleRepository;
+class DeleteArticleHandler(
+    private val articleRepository: ArticleRepository
+) : CommandHandler<DeleteArticleResult, DeleteArticle> {
 
     @Transactional
-    @Override
-    public DeleteArticleResult handle(DeleteArticle command) {
-        Article article = articleRepository.findBySlug(command.getSlug())
-                .orElseThrow(() -> notFound("article [slug=%s] does not exist", command.getSlug()));
+    override fun handle(command: DeleteArticle): DeleteArticleResult {
+        val article = articleRepository.findBySlug(command.slug)
+            .orElseThrow { NotFoundException.notFound("article [slug=%s] does not exist", command.slug) }
 
-        if (!Objects.equals(article.getAuthor().getUsername(), command.getCurrentUsername())) {
-            throw forbidden("article [slug=%s] is not owned by %s", command.getSlug(), command.getCurrentUsername());
+        if (article.author!!.username != command.currentUsername) {
+            throw ForbiddenException.forbidden("article [slug=%s] is not owned by %s", command.slug, command.currentUsername)
         }
 
-        articleRepository.delete(article);
+        articleRepository.delete(article)
 
-        return new DeleteArticleResult();
+        return DeleteArticleResult()
     }
-
 }

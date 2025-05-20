@@ -21,46 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application.command;
+package com.github.al.realworld.application.command
 
-import com.github.al.realworld.api.command.FavoriteArticle;
-import com.github.al.realworld.api.command.FavoriteArticleResult;
-import com.github.al.realworld.application.ArticleAssembler;
-import com.github.al.realworld.bus.CommandHandler;
-import com.github.al.realworld.domain.model.Article;
-import com.github.al.realworld.domain.model.User;
-import com.github.al.realworld.domain.repository.ArticleRepository;
-import com.github.al.realworld.domain.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.github.al.realworld.api.command.FavoriteArticle
+import com.github.al.realworld.api.command.FavoriteArticleResult
+import com.github.al.realworld.application.ArticleAssembler
+import com.github.al.realworld.application.exception.BadRequestException
+import com.github.al.realworld.application.exception.NotFoundException
+import com.github.al.realworld.bus.CommandHandler
+import com.github.al.realworld.domain.repository.ArticleRepository
+import com.github.al.realworld.domain.repository.UserRepository
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
-import static com.github.al.realworld.application.exception.BadRequestException.badRequest;
-import static com.github.al.realworld.application.exception.NotFoundException.notFound;
-
-@RequiredArgsConstructor
 @Service
-public class FavoriteArticleHandler implements CommandHandler<FavoriteArticleResult, FavoriteArticle> {
-
-    private final ArticleRepository articleRepository;
-    private final UserRepository userRepository;
+class FavoriteArticleHandler(
+    private val articleRepository: ArticleRepository,
+    private val userRepository: UserRepository
+) : CommandHandler<FavoriteArticleResult, FavoriteArticle> {
 
     @Transactional
-    @Override
-    public FavoriteArticleResult handle(FavoriteArticle command) {
-        Article article = articleRepository.findBySlug(command.getSlug())
-                .orElseThrow(() -> notFound("article [slug=%s] does not exist", command.getSlug()));
+    override fun handle(command: FavoriteArticle): FavoriteArticleResult {
+        val article = articleRepository.findBySlug(command.slug)
+            .orElseThrow { NotFoundException.notFound("article [slug=%s] does not exist", command.slug) }
 
-        User currentUser = userRepository.findByUsername(command.getCurrentUsername())
-                .orElseThrow(() -> badRequest("user [name=%s] does not exist", command.getCurrentUsername()));
+        val currentUser = userRepository.findByUsername(command.currentUsername)
+            .orElseThrow { BadRequestException.badRequest("user [name=%s] does not exist", command.currentUsername) }
 
-        Article alteredArticle = article.toBuilder()
-                .favoredUser(currentUser)
-                .build();
+        article.favoredUser(currentUser)
 
-        Article savedArticle = articleRepository.save(alteredArticle);
+        val savedArticle = articleRepository.save(article)
 
-        return new FavoriteArticleResult(ArticleAssembler.assemble(savedArticle, currentUser));
+        return FavoriteArticleResult(ArticleAssembler.assemble(savedArticle, currentUser))
     }
-
 }
