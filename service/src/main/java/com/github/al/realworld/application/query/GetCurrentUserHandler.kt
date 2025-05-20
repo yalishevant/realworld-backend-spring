@@ -21,37 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application.query;
+package com.github.al.realworld.application.query
 
-import com.github.al.realworld.api.query.GetTags;
-import com.github.al.realworld.api.query.GetTagsResult;
-import com.github.al.realworld.bus.QueryHandler;
-import com.github.al.realworld.domain.model.Tag;
-import com.github.al.realworld.domain.repository.TagRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.github.al.realworld.api.query.GetCurrentUser
+import com.github.al.realworld.api.query.GetCurrentUserResult
+import com.github.al.realworld.application.UserAssembler
+import com.github.al.realworld.application.exception.BadRequestException
+import com.github.al.realworld.application.service.JwtService
+import com.github.al.realworld.bus.QueryHandler
+import com.github.al.realworld.domain.repository.UserRepository
+import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
-import java.util.ArrayList;
-import java.util.stream.StreamSupport;
-
-@RequiredArgsConstructor
-@Service
-public class GetTagsHandler implements QueryHandler<GetTagsResult, GetTags> {
-
-    private final TagRepository tagRepository;
+@Component
+class GetCurrentUserHandler(
+    private val userRepository: UserRepository,
+    private val jwtService: JwtService
+) : QueryHandler<GetCurrentUserResult, GetCurrentUser> {
 
     @Transactional(readOnly = true)
-    @Override
-    public GetTagsResult handle(GetTags query) {
-        GetTagsResult result = new GetTagsResult(new ArrayList<>());
+    override fun handle(query: GetCurrentUser): GetCurrentUserResult {
+        val user = userRepository.findByUsername(query.username)
+            .orElseThrow { BadRequestException.badRequest("user [name=%s] does not exist", query.username) }
 
-        StreamSupport.stream(tagRepository.findAll().spliterator(), false)
-                .map(Tag::getName)
-                .sorted()
-                .forEach(t -> result.getTags().add(t));
-
-        return result;
+        return GetCurrentUserResult(UserAssembler.assemble(user, jwtService))
     }
-
 }
