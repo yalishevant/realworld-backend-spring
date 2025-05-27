@@ -21,18 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application;
+package com.github.al.realworld.application
 
-import com.github.al.realworld.api.dto.ProfileDto;
-import com.github.al.realworld.domain.model.User;
+import com.github.al.realworld.api.dto.CommentDto
+import com.github.al.realworld.domain.model.Comment
+import com.github.al.realworld.domain.model.User
 
-public class ProfileAssembler {
+object CommentAssembler {
 
-    public static ProfileDto assemble(User user, User currentUser) {
-        boolean isFollow = currentUser != null && user.getFollowers().stream()
-                .map(followRelation -> followRelation.getFollower().getId())
-                .anyMatch(uuid -> uuid.equals(currentUser.getId()));
-        return new ProfileDto(user.getUsername(), user.getBio(), user.getImage(), isFollow);
-    }
-
+    fun assemble(comment: Comment, currentUser: User?): CommentDto =
+        CommentDto(
+            id = comment.id,
+            createdAt = comment.createdAt,
+            updatedAt = comment.updatedAt,
+            body = comment.body,
+            author = ProfileAssembler.assemble(comment.author, currentUser)
+        )
 }

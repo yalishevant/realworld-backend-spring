@@ -63,12 +63,9 @@ class AddCommentHandler(
 
         val savedArticle = articleRepository.save(article)
 
-        val savedComment = savedArticle.comments.stream()
-            .filter { c -> c.createdAt == comment.createdAt }
-            .filter { c -> c.author == comment.author }
-            .findFirst()
-            // should never happen
-            .orElseThrow { RuntimeException("saved comment not found") }
+        val savedComment = savedArticle.comments.firstOrNull {
+            it.createdAt == comment.createdAt && it.author == comment.author
+        } ?: throw RuntimeException("saved comment not found")
 
         return AddCommentResult(CommentAssembler.assemble(savedComment, currentUser))
     }

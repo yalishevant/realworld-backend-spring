@@ -59,7 +59,7 @@ class UnfollowProfileHandler(
 
         followRelationRepository.deleteByFollowerAndFollowee(currentUser, followee)
 
-        val filteredFollowers = followee.followers.filter { !it.follower!!.equals(currentUser) }
+        val filteredFollowers = followee.followers.filter { it.follower != currentUser }
 
         // Use clearFollowers() and addFollowers() methods instead of toBuilder()
         val alteredFollowee = followee.clearFollowers().addFollowers(filteredFollowers)

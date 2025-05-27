@@ -21,25 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.api.dto;
+package com.github.al.realworld.application
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.github.al.realworld.api.dto.ProfileDto
+import com.github.al.realworld.domain.model.User
 
-import java.time.ZonedDateTime;
+object ProfileAssembler {
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Getter
-public class CommentDto {
-
-    private Long id;
-    private ZonedDateTime createdAt;
-    private ZonedDateTime updatedAt;
-    private String body;
-    private ProfileDto author;
-
+    fun assemble(user: User?, currentUser: User?): ProfileDto {
+        val isFollow = currentUser != null &&
+            user?.followers?.any { it.follower?.id == currentUser.id } == true
+        return ProfileDto(user?.username, user?.bio, user?.image, isFollow)
+    }
 }

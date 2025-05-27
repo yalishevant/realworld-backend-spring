@@ -49,7 +49,7 @@ class UpdateArticleHandler(
         val article = articleRepository.findBySlug(command.slug)
             .orElseThrow { NotFoundException.notFound("article [slug=%s] does not exist", command.slug) }
 
-        if (article.author!!.username != command.currentUsername) {
+        if (article.author?.username != command.currentUsername) {
             throw ForbiddenException.forbidden("article [slug=%s] is not owned by %s", command.slug, command.currentUsername)
         }
 

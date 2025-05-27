@@ -21,22 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application;
+package com.github.al.realworld.api.dto
 
-import com.github.al.realworld.api.dto.CommentDto;
-import com.github.al.realworld.domain.model.Comment;
-import com.github.al.realworld.domain.model.User;
-
-public class CommentAssembler {
-
-    public static CommentDto assemble(Comment comment, User currentUser) {
-        return CommentDto.builder()
-                .id(comment.getId())
-                .createdAt(comment.getCreatedAt())
-                .updatedAt(comment.getUpdatedAt())
-                .body(comment.getBody())
-                .author(ProfileAssembler.assemble(comment.getAuthor(), currentUser))
-                .build();
-    }
-
-}
+data class UserDto(
+    val email: String? = null,
+    val token: String? = null,
+    val username: String? = null,
+    val bio: String? = null,
+    val image: String? = null
+)

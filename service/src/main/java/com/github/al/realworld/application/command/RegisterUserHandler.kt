@@ -32,7 +32,6 @@ import com.github.al.realworld.application.service.JwtService
 import com.github.al.realworld.bus.CommandHandler
 import com.github.al.realworld.domain.model.User
 import com.github.al.realworld.domain.repository.UserRepository
-import lombok.RequiredArgsConstructor
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

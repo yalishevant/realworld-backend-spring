@@ -21,23 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.api.dto;
+package com.github.al.realworld.api.command
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonRootName
+import com.github.al.realworld.bus.Command
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Getter
-public class UserDto {
-
-    private String email;
-    private String token;
-    private String username;
-    private String bio;
-    private String image;
-
-}
+@JsonRootName("comment")
+data class AddComment(
+    val slug: String? = null,
+    val body: String? = null,
+    val currentUsername: String? = null
+) : Command<AddCommentResult>

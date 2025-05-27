@@ -21,20 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.api.dto;
+package com.github.al.realworld.application
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.github.al.realworld.api.dto.UserDto
+import com.github.al.realworld.application.service.JwtService
+import com.github.al.realworld.domain.model.User
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-public class ProfileDto {
+object UserAssembler {
 
-    private String username;
-    private String bio;
-    private String image;
-    private Boolean following;
-
+    fun assemble(user: User, jwtService: JwtService): UserDto =
+        UserDto(
+            email = user.email,
+            username = user.username,
+            token = jwtService.getToken(user),
+            bio = user.bio,
+            image = user.image
+        )
 }
