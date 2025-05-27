@@ -26,7 +26,6 @@ package com.github.al.realworld.application.command
 import com.github.al.realworld.api.command.UnfollowProfile
 import com.github.al.realworld.api.command.UnfollowProfileResult
 import com.github.al.realworld.application.ProfileAssembler
-import com.github.al.realworld.application.ProfileAssembler.*
 import com.github.al.realworld.application.exception.BadRequestException
 import com.github.al.realworld.application.exception.BadRequestException.*
 import com.github.al.realworld.application.exception.NotFoundException
@@ -59,13 +58,13 @@ class UnfollowProfileHandler(
 
         followRelationRepository.deleteByFollowerAndFollowee(currentUser, followee)
 
-        val filteredFollowers = followee.followers.filter { !it.follower!!.equals(currentUser) }
+        val filteredFollowers = followee.followers.filter { it.follower != currentUser }
 
         // Use clearFollowers() and addFollowers() methods instead of toBuilder()
         val alteredFollowee = followee.clearFollowers().addFollowers(filteredFollowers)
 
         userRepository.save(alteredFollowee)
 
-        return UnfollowProfileResult(assemble(alteredFollowee, currentUser))
+        return UnfollowProfileResult(ProfileAssembler.assemble(alteredFollowee, currentUser))
     }
 }

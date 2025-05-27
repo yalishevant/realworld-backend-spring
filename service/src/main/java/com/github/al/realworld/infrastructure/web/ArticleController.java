@@ -117,7 +117,8 @@ public class ArticleController implements ArticleOperations {
 
     @Override
     public AddCommentResult addComment(String slug, @Valid AddComment command) {
-        return bus.executeCommand(command.toBuilder().slug(slug).currentUsername(auth.currentUsername()).build());
+        AddComment enriched = new AddComment(slug, command.getBody(), auth.currentUsername());
+        return bus.executeCommand(enriched);
     }
 
     @Override

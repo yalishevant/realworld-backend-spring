@@ -21,30 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application;
+package com.github.al.realworld.application
 
-import com.github.al.realworld.api.dto.ArticleDto;
-import com.github.al.realworld.domain.model.Article;
-import com.github.al.realworld.domain.model.Tag;
-import com.github.al.realworld.domain.model.User;
+import com.github.al.realworld.api.dto.ArticleDto
+import com.github.al.realworld.domain.model.Article
+import com.github.al.realworld.domain.model.Tag
+import com.github.al.realworld.domain.model.User
 
-import java.util.stream.Collectors;
+object ArticleAssembler {
 
-public class ArticleAssembler {
-
-    public static ArticleDto assemble(Article article, User currentUser) {
-        return ArticleDto.builder()
-                .slug(article.getSlug())
-                .title(article.getTitle())
-                .description(article.getDescription())
-                .body(article.getBody())
-                .tagList(article.getTags().stream().map(Tag::getName).sorted().collect(Collectors.toList()))
-                .createdAt(article.getCreatedAt())
-                .updatedAt(article.getUpdatedAt())
-                .favorited(currentUser != null && article.getFavoredUsers().contains(currentUser))
-                .favoritesCount(article.getFavoredUsers().size())
-                .author(ProfileAssembler.assemble(article.getAuthor(), currentUser))
-                .build();
-    }
-
+    fun assemble(article: Article, currentUser: User?): ArticleDto =
+        ArticleDto(
+            slug = article.slug,
+            title = article.title,
+            description = article.description,
+            body = article.body,
+            tagList = article.tags.mapNotNull(Tag::name).sorted(),
+            createdAt = article.createdAt,
+            updatedAt = article.updatedAt,
+            favorited = currentUser != null && article.favoredUsers.contains(currentUser),
+            favoritesCount = article.favoredUsers.size,
+            author = ProfileAssembler.assemble(article.author, currentUser)
+        )
 }

@@ -21,30 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.api.dto;
+package com.github.al.realworld.api.dto
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.time.ZonedDateTime;
-import java.util.List;
-
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Getter
-public class ArticleDto {
-
-    private String slug;
-    private String title;
-    private String description;
-    private String body;
-    private List<String> tagList;
-    private ZonedDateTime createdAt;
-    private ZonedDateTime updatedAt;
-    private Boolean favorited;
-    private Integer favoritesCount;
-    private ProfileDto author;
-}
+data class ProfileDto(
+    val username: String? = null,
+    val bio: String? = null,
+    val image: String? = null,
+    val following: Boolean? = null
+)

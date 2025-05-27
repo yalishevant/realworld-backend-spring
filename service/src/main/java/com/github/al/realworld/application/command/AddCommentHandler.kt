@@ -47,8 +47,9 @@ class AddCommentHandler(
         val article = articleRepository.findBySlug(command.slug)
             .orElseThrow { NotFoundException.notFound("article [slug=%s] does not exist", command.slug) }
 
-        val currentUser = userRepository.findByUsername(command.currentUsername)
-            ?: throw BadRequestException.badRequest("user [name=%s] does not exist", command.currentUsername)
+        val username = command.currentUsername ?: throw BadRequestException.badRequest("username cannot be null")
+        val currentUser = userRepository.findByUsername(username)
+            ?: throw BadRequestException.badRequest("user [name=%s] does not exist", username)
 
         val now = ZonedDateTime.now()
 
@@ -63,12 +64,9 @@ class AddCommentHandler(
 
         val savedArticle = articleRepository.save(article)
 
-        val savedComment = savedArticle.comments.stream()
-            .filter { c -> c.createdAt == comment.createdAt }
-            .filter { c -> c.author == comment.author }
-            .findFirst()
-            // should never happen
-            .orElseThrow { RuntimeException("saved comment not found") }
+        val savedComment = savedArticle.comments.firstOrNull {
+            it.createdAt == comment.createdAt && it.author == comment.author
+        } ?: throw RuntimeException("saved comment not found")
 
         return AddCommentResult(CommentAssembler.assemble(savedComment, currentUser))
     }

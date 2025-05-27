@@ -42,12 +42,10 @@ class DeleteCommentHandler(
         val article = articleRepository.findBySlug(command.slug)
             .orElseThrow { NotFoundException.notFound("article [slug=%s] does not exist", command.slug) }
 
-        val comment = article.comments.stream()
-            .filter { c -> c.id == command.id }
-            .findFirst()
-            .orElseThrow { NotFoundException.notFound("comment [id=%s] does not exist", command.id) }
+        val comment = article.comments.firstOrNull { it.id == command.id }
+            ?: throw NotFoundException.notFound("comment [id=%s] does not exist", command.id)
 
-        if (comment.author!!.username != command.currentUsername) {
+        if (comment.author?.username != command.currentUsername) {
             throw ForbiddenException.forbidden("comment [id=%s] is not owned by %s", comment.id, command.currentUsername)
         }
 

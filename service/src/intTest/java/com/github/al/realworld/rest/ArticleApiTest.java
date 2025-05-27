@@ -163,7 +163,7 @@ public class ArticleApiTest extends BaseRestTest {
 
         ArticleDto created = articleClient.create(createArticleCommand()).getArticle();
 
-        AddComment addComment = AddComment.builder().body(TEST_BODY).build();
+        AddComment addComment = new AddComment(null, TEST_BODY, null);
 
         CommentDto comment = articleClient.addComment(created.getSlug(), addComment).getComment();
 
@@ -190,7 +190,7 @@ public class ArticleApiTest extends BaseRestTest {
 
         ArticleDto article = articleClient.create(createArticleCommand()).getArticle();
 
-        AddComment addComment = AddComment.builder().body(TEST_BODY).build();
+        AddComment addComment = new AddComment(null, TEST_BODY, null);
         CommentDto comment = articleClient.addComment(article.getSlug(), addComment).getComment();
 
         auth.register().login();
@@ -207,7 +207,7 @@ public class ArticleApiTest extends BaseRestTest {
     void should_throw404_when_addCommentArticleDoesNotExist() {
         auth.register().login();
 
-        AddComment addComment = AddComment.builder().body(TEST_BODY).build();
+        AddComment addComment = new AddComment(null, TEST_BODY, null);
         RestClientResponseException exception = catchThrowableOfType(
                 () -> articleClient.addComment(UUID.randomUUID().toString(), addComment),
                 RestClientResponseException.class
