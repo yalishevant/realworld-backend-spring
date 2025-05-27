@@ -26,7 +26,6 @@ package com.github.al.realworld.application.command
 import com.github.al.realworld.api.command.UnfollowProfile
 import com.github.al.realworld.api.command.UnfollowProfileResult
 import com.github.al.realworld.application.ProfileAssembler
-import com.github.al.realworld.application.ProfileAssembler.*
 import com.github.al.realworld.application.exception.BadRequestException
 import com.github.al.realworld.application.exception.BadRequestException.*
 import com.github.al.realworld.application.exception.NotFoundException
@@ -66,6 +65,6 @@ class UnfollowProfileHandler(
 
         userRepository.save(alteredFollowee)
 
-        return UnfollowProfileResult(assemble(alteredFollowee, currentUser))
+        return UnfollowProfileResult(ProfileAssembler.assemble(alteredFollowee, currentUser))
     }
 }
