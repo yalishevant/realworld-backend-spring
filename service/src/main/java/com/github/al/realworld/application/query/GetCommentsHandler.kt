@@ -26,7 +26,7 @@ package com.github.al.realworld.application.query
 import com.github.al.realworld.api.dto.CommentDto
 import com.github.al.realworld.api.query.GetComments
 import com.github.al.realworld.api.query.GetCommentsResult
-import com.github.al.realworld.application.CommentAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.application.exception.NotFoundException
 import com.github.al.realworld.bus.QueryHandler
 import com.github.al.realworld.domain.repository.ArticleRepository
@@ -49,7 +49,7 @@ class GetCommentsHandler(
 
         val result = mutableListOf<CommentDto>()
 
-        article.comments.forEach { comment -> result.add(CommentAssembler.assemble(comment, currentUser)) }
+        article.comments.forEach { comment -> result.add(comment.toDto(currentUser)) }
 
         return GetCommentsResult(result)
     }

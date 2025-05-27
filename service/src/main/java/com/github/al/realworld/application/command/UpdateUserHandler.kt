@@ -25,7 +25,7 @@ package com.github.al.realworld.application.command
 
 import com.github.al.realworld.api.command.UpdateUser
 import com.github.al.realworld.api.command.UpdateUserResult
-import com.github.al.realworld.application.UserAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.application.exception.BadRequestException
 import com.github.al.realworld.application.exception.NotFoundException
 import com.github.al.realworld.application.service.JwtService
@@ -71,6 +71,6 @@ class UpdateUserHandler(
 
         val savedUser = userRepository.save(alteredUser)
 
-        return UpdateUserResult(UserAssembler.assemble(savedUser, jwtService))
+        return UpdateUserResult(savedUser.toDto(jwtService))
     }
 }

@@ -25,7 +25,7 @@ package com.github.al.realworld.application.query
 
 import com.github.al.realworld.api.query.GetArticle
 import com.github.al.realworld.api.query.GetArticleResult
-import com.github.al.realworld.application.ArticleAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.bus.QueryHandler
 import com.github.al.realworld.domain.repository.ArticleRepository
 import com.github.al.realworld.domain.repository.UserRepository
@@ -46,6 +46,6 @@ class GetArticleHandler(
 
         val currentUser = if (query.currentUsername != null) userRepository.findByUsername(query.currentUsername) else null
 
-        return GetArticleResult(ArticleAssembler.assemble(article, currentUser))
+        return GetArticleResult(article.toDto(currentUser))
     }
 }

@@ -25,7 +25,7 @@ package com.github.al.realworld.application.command
 
 import com.github.al.realworld.api.command.UpdateArticle
 import com.github.al.realworld.api.command.UpdateArticleResult
-import com.github.al.realworld.application.ArticleAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.application.exception.BadRequestException
 import com.github.al.realworld.application.exception.ForbiddenException
 import com.github.al.realworld.application.exception.NotFoundException
@@ -66,6 +66,6 @@ class UpdateArticleHandler(
 
         articleRepository.save(alteredArticle)
 
-        return UpdateArticleResult(ArticleAssembler.assemble(alteredArticle, currentUser))
+        return UpdateArticleResult(alteredArticle.toDto(currentUser))
     }
 }

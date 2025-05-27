@@ -26,7 +26,7 @@ package com.github.al.realworld.application.query
 import com.github.al.realworld.api.dto.ArticleDto
 import com.github.al.realworld.api.query.GetFeed
 import com.github.al.realworld.api.query.GetFeedResult
-import com.github.al.realworld.application.ArticleAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.application.exception.BadRequestException
 import com.github.al.realworld.bus.QueryHandler
 import com.github.al.realworld.domain.repository.ArticleRepository
@@ -56,7 +56,7 @@ class GetFeedHandler(
 
         val results = mutableListOf<ArticleDto>()
 
-        articles.forEach { article -> results.add(ArticleAssembler.assemble(article, currentUser)) }
+        articles.forEach { article -> results.add(article.toDto(currentUser)) }
 
         return GetFeedResult(results, results.size)
     }

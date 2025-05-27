@@ -25,7 +25,7 @@ package com.github.al.realworld.application.command
 
 import com.github.al.realworld.api.command.LoginUser
 import com.github.al.realworld.api.command.LoginUserResult
-import com.github.al.realworld.application.UserAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.application.exception.BadRequestException
 import com.github.al.realworld.application.exception.UnauthorizedException
 import com.github.al.realworld.application.service.JwtService
@@ -51,6 +51,6 @@ class LoginUserHandler(
             throw UnauthorizedException.unauthorized("user [email=%s] password is incorrect", command.email)
         }
 
-        return LoginUserResult(UserAssembler.assemble(user, jwtService))
+        return LoginUserResult(user.toDto(jwtService))
     }
 }

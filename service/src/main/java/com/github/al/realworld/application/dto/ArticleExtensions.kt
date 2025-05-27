@@ -21,26 +21,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application
+package com.github.al.realworld.application.dto
 
 import com.github.al.realworld.api.dto.ArticleDto
+import com.github.al.realworld.api.dto.ProfileDto
 import com.github.al.realworld.domain.model.Article
 import com.github.al.realworld.domain.model.Tag
 import com.github.al.realworld.domain.model.User
 
-object ArticleAssembler {
+/**
+ * Extension function to convert an Article domain model to ArticleDto
+ */
+fun Article.toDto(currentUser: User?): ArticleDto {
+    val isFollow = currentUser != null &&
+            author?.followers?.any { it.follower?.id == currentUser.id } == true
+    val profileDto = author?.let {
+        ProfileDto(it.username, it.bio, it.image, isFollow)
+    }
 
-    fun assemble(article: Article, currentUser: User?): ArticleDto =
-        ArticleDto(
-            slug = article.slug,
-            title = article.title,
-            description = article.description,
-            body = article.body,
-            tagList = article.tags.mapNotNull(Tag::name).sorted(),
-            createdAt = article.createdAt,
-            updatedAt = article.updatedAt,
-            favorited = currentUser != null && article.favoredUsers.contains(currentUser),
-            favoritesCount = article.favoredUsers.size,
-            author = ProfileAssembler.assemble(article.author, currentUser)
-        )
+    return ArticleDto(
+        slug = slug,
+        title = title,
+        description = description,
+        body = body,
+        tagList = tags.mapNotNull(Tag::name).sorted(),
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        favorited = currentUser != null && favoredUsers.contains(currentUser),
+        favoritesCount = favoredUsers.size,
+        author = profileDto
+    )
 }

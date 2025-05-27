@@ -21,20 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application
+package com.github.al.realworld.application.dto
 
-import com.github.al.realworld.api.dto.UserDto
-import com.github.al.realworld.application.service.JwtService
+import com.github.al.realworld.api.dto.CommentDto
+import com.github.al.realworld.api.dto.ProfileDto
+import com.github.al.realworld.domain.model.Comment
 import com.github.al.realworld.domain.model.User
 
-object UserAssembler {
-
-    fun assemble(user: User, jwtService: JwtService): UserDto =
-        UserDto(
-            email = user.email,
-            username = user.username,
-            token = jwtService.getToken(user),
-            bio = user.bio,
-            image = user.image
-        )
+/**
+ * Extension function to convert a Comment domain model to CommentDto
+ */
+fun Comment.toDto(currentUser: User?): CommentDto {
+    val user = author
+    val isFollow = currentUser != null &&
+        user?.followers?.any { it.follower?.id == currentUser.id } == true
+    val profileDto = user?.let {
+        ProfileDto(it.username, it.bio, it.image, isFollow)
+    }
+    
+    return CommentDto(
+        id = id,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        body = body,
+        author = profileDto
+    )
 }

@@ -25,7 +25,7 @@ package com.github.al.realworld.application.command
 
 import com.github.al.realworld.api.command.UnfavoriteArticle
 import com.github.al.realworld.api.command.UnfavoriteArticleResult
-import com.github.al.realworld.application.ArticleAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.application.exception.BadRequestException
 import com.github.al.realworld.application.exception.NotFoundException
 import com.github.al.realworld.bus.CommandHandler
@@ -55,6 +55,6 @@ class UnfavoriteArticleHandler(
 
         val savedArticle = articleRepository.save(article)
 
-        return UnfavoriteArticleResult(ArticleAssembler.assemble(savedArticle, currentUser))
+        return UnfavoriteArticleResult(savedArticle.toDto(currentUser))
     }
 }

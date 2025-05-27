@@ -25,7 +25,7 @@ package com.github.al.realworld.application.query
 
 import com.github.al.realworld.api.query.GetCurrentUser
 import com.github.al.realworld.api.query.GetCurrentUserResult
-import com.github.al.realworld.application.UserAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.application.exception.BadRequestException
 import com.github.al.realworld.application.service.JwtService
 import com.github.al.realworld.bus.QueryHandler
@@ -44,6 +44,6 @@ class GetCurrentUserHandler(
         val user = userRepository.findByUsername(query.username)
             ?: throw BadRequestException.badRequest("user [name=%s] does not exist", query.username)
 
-        return GetCurrentUserResult(UserAssembler.assemble(user, jwtService))
+        return GetCurrentUserResult(user.toDto(jwtService))
     }
 }

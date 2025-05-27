@@ -25,7 +25,7 @@ package com.github.al.realworld.application.query
 
 import com.github.al.realworld.api.query.GetComment
 import com.github.al.realworld.api.query.GetCommentResult
-import com.github.al.realworld.application.CommentAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.application.exception.NotFoundException
 import com.github.al.realworld.bus.QueryHandler
 import com.github.al.realworld.domain.repository.ArticleRepository
@@ -51,6 +51,6 @@ class GetCommentHandler(
             .findFirst()
             .orElseThrow { NotFoundException.notFound("comment [id=%s] does not exists", query.id) }
 
-        return GetCommentResult(CommentAssembler.assemble(comment, currentUser))
+        return GetCommentResult(comment.toDto(currentUser))
     }
 }

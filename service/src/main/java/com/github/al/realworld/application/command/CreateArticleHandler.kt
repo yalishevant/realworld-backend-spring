@@ -25,7 +25,7 @@ package com.github.al.realworld.application.command
 
 import com.github.al.realworld.api.command.CreateArticle
 import com.github.al.realworld.api.command.CreateArticleResult
-import com.github.al.realworld.application.ArticleAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.application.service.SlugService
 import com.github.al.realworld.bus.CommandHandler
 import com.github.al.realworld.domain.model.Article
@@ -75,6 +75,6 @@ class CreateArticleHandler(
 
         val savedArticle = articleRepository.save(article)
 
-        return CreateArticleResult(ArticleAssembler.assemble(savedArticle, currentUser))
+        return CreateArticleResult(savedArticle.toDto(currentUser))
     }
 }

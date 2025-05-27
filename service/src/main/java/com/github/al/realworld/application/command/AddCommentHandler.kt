@@ -25,7 +25,7 @@ package com.github.al.realworld.application.command
 
 import com.github.al.realworld.api.command.AddComment
 import com.github.al.realworld.api.command.AddCommentResult
-import com.github.al.realworld.application.CommentAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.application.exception.BadRequestException
 import com.github.al.realworld.application.exception.NotFoundException
 import com.github.al.realworld.bus.CommandHandler
@@ -68,6 +68,6 @@ class AddCommentHandler(
             it.createdAt == comment.createdAt && it.author == comment.author
         } ?: throw RuntimeException("saved comment not found")
 
-        return AddCommentResult(CommentAssembler.assemble(savedComment, currentUser))
+        return AddCommentResult(savedComment.toDto(currentUser))
     }
 }

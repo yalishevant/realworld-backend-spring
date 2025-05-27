@@ -25,13 +25,12 @@ package com.github.al.realworld.application.command
 
 import com.github.al.realworld.api.command.FollowProfile
 import com.github.al.realworld.api.command.FollowProfileResult
-import com.github.al.realworld.application.ProfileAssembler
+import com.github.al.realworld.application.dto.toProfileDto
 import com.github.al.realworld.application.exception.BadRequestException
 import com.github.al.realworld.application.exception.NotFoundException
 import com.github.al.realworld.bus.CommandHandler
 import com.github.al.realworld.domain.model.FollowRelation
 import com.github.al.realworld.domain.model.FollowRelationId
-import com.github.al.realworld.domain.model.User
 import com.github.al.realworld.domain.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -54,15 +53,13 @@ class FollowProfileHandler(
             ?: throw NotFoundException.notFound("user [name=%s] does not exist", command.followee)
 
         val follow = FollowRelation(
-            FollowRelationId(currentUser.id, followee.id),
-            currentUser,
-            followee
+            FollowRelationId(currentUser.id, followee.id), currentUser, followee
         )
 
         // Use addFollower method instead of toBuilder().follower().build()
         val alteredFollowee = followee.addFollower(follow)
         userRepository.save(alteredFollowee)
 
-        return FollowProfileResult(ProfileAssembler.assemble(alteredFollowee, currentUser))
+        return FollowProfileResult(alteredFollowee.toProfileDto(currentUser))
     }
 }

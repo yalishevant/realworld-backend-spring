@@ -25,7 +25,7 @@ package com.github.al.realworld.application.command
 
 import com.github.al.realworld.api.command.RegisterUser
 import com.github.al.realworld.api.command.RegisterUserResult
-import com.github.al.realworld.application.UserAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.application.exception.BadRequestException
 import com.github.al.realworld.application.exception.BadRequestException.badRequest
 import com.github.al.realworld.application.service.JwtService
@@ -62,6 +62,6 @@ class RegisterUserHandler(
         )
         userRepository.save(user)
 
-        return RegisterUserResult(UserAssembler.assemble(user, jwtService))
+        return RegisterUserResult(user.toDto(jwtService))
     }
 }

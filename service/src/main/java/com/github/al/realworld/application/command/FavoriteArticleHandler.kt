@@ -25,7 +25,7 @@ package com.github.al.realworld.application.command
 
 import com.github.al.realworld.api.command.FavoriteArticle
 import com.github.al.realworld.api.command.FavoriteArticleResult
-import com.github.al.realworld.application.ArticleAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.application.exception.BadRequestException
 import com.github.al.realworld.application.exception.NotFoundException
 import com.github.al.realworld.bus.CommandHandler
@@ -52,6 +52,6 @@ class FavoriteArticleHandler(
 
         val savedArticle = articleRepository.save(article)
 
-        return FavoriteArticleResult(ArticleAssembler.assemble(savedArticle, currentUser))
+        return FavoriteArticleResult(savedArticle.toDto(currentUser))
     }
 }

@@ -26,7 +26,7 @@ package com.github.al.realworld.application.query
 import com.github.al.realworld.api.dto.ArticleDto
 import com.github.al.realworld.api.query.GetArticles
 import com.github.al.realworld.api.query.GetArticlesResult
-import com.github.al.realworld.application.ArticleAssembler
+import com.github.al.realworld.application.dto.toDto
 import com.github.al.realworld.bus.QueryHandler
 import com.github.al.realworld.domain.repository.ArticleRepository
 import com.github.al.realworld.domain.repository.UserRepository
@@ -44,11 +44,12 @@ class GetArticlesHandler(
         val articles = articleRepository
             .findByFilters(query.tag, query.author, query.favorited, query.limit, query.offset)
 
-        val currentUser = if (query.currentUsername != null) userRepository.findByUsername(query.currentUsername) else null
+        val currentUser =
+            if (query.currentUsername != null) userRepository.findByUsername(query.currentUsername) else null
 
         val results = mutableListOf<ArticleDto>()
 
-        articles.forEach { article -> results.add(ArticleAssembler.assemble(article, currentUser)) }
+        articles.forEach { article -> results.add(article.toDto(currentUser)) }
 
         return GetArticlesResult(results, results.size)
     }

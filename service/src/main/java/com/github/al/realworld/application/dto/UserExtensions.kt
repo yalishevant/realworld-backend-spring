@@ -21,16 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.github.al.realworld.application
+package com.github.al.realworld.application.dto
 
 import com.github.al.realworld.api.dto.ProfileDto
+import com.github.al.realworld.api.dto.UserDto
+import com.github.al.realworld.application.service.JwtService
 import com.github.al.realworld.domain.model.User
 
-object ProfileAssembler {
-
-    fun assemble(user: User?, currentUser: User?): ProfileDto {
-        val isFollow = currentUser != null &&
-            user?.followers?.any { it.follower?.id == currentUser.id } == true
-        return ProfileDto(user?.username, user?.bio, user?.image, isFollow)
-    }
+/**
+ * Extension function to convert a User domain model to ProfileDto
+ */
+fun User?.toProfileDto(currentUser: User?): ProfileDto {
+    val isFollow = currentUser != null &&
+        this?.followers?.any { it.follower?.id == currentUser.id } == true
+    return ProfileDto(this?.username, this?.bio, this?.image, isFollow)
 }
+
+/**
+ * Extension function to convert a User domain model to UserDto
+ */
+fun User.toDto(jwtService: JwtService): UserDto =
+    UserDto(
+        email = email,
+        username = username,
+        token = jwtService.getToken(this),
+        bio = bio,
+        image = image
+    )

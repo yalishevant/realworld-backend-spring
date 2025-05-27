@@ -25,7 +25,7 @@ package com.github.al.realworld.application.query
 
 import com.github.al.realworld.api.query.GetProfile
 import com.github.al.realworld.api.query.GetProfileResult
-import com.github.al.realworld.application.ProfileAssembler
+import com.github.al.realworld.application.dto.toProfileDto
 import com.github.al.realworld.application.exception.NotFoundException
 import com.github.al.realworld.bus.QueryHandler
 import com.github.al.realworld.domain.repository.UserRepository
@@ -44,6 +44,6 @@ class GetProfileHandler(
         val user = userRepository.findByUsername(query.username)
             ?: throw NotFoundException.notFound("user [name=%s] does not exist", query.username)
 
-        return GetProfileResult(ProfileAssembler.assemble(user, currentUser))
+        return GetProfileResult(user.toProfileDto(currentUser))
     }
 }
