@@ -27,7 +27,9 @@ import com.github.al.realworld.api.command.FollowProfile
 import com.github.al.realworld.api.command.FollowProfileResult
 import com.github.al.realworld.application.dto.toProfileDto
 import com.github.al.realworld.application.exception.BadRequestException
+import com.github.al.realworld.application.exception.BadRequestException.*
 import com.github.al.realworld.application.exception.NotFoundException
+import com.github.al.realworld.application.exception.NotFoundException.*
 import com.github.al.realworld.bus.CommandHandler
 import com.github.al.realworld.domain.model.FollowRelation
 import com.github.al.realworld.domain.model.FollowRelationId
@@ -47,16 +49,13 @@ class FollowProfileHandler(
     @Transactional
     override fun handle(command: FollowProfile): FollowProfileResult {
         val currentUser = userRepository.findByUsername(command.follower)
-            ?: throw BadRequestException.badRequest("user [name=%s] does not exist", command.follower)
+            ?: throw badRequest("user [name=%s] does not exist", command.follower)
 
         val followee = userRepository.findByUsername(command.followee)
-            ?: throw NotFoundException.notFound("user [name=%s] does not exist", command.followee)
+            ?: throw notFound("user [name=%s] does not exist", command.followee)
 
-        val follow = FollowRelation(
-            FollowRelationId(currentUser.id, followee.id), currentUser, followee
-        )
+        val follow = FollowRelation(FollowRelationId(currentUser.id, followee.id), currentUser, followee)
 
-        // Use addFollower method instead of toBuilder().follower().build()
         val alteredFollowee = followee.addFollower(follow)
         userRepository.save(alteredFollowee)
 

@@ -34,10 +34,9 @@ import com.github.al.realworld.domain.model.User
  */
 fun Article.toDto(currentUser: User?): ArticleDto {
     val isFollow = currentUser != null &&
-            author?.followers?.any { it.follower?.id == currentUser.id } == true
-    val profileDto = author?.let {
-        ProfileDto(it.username, it.bio, it.image, isFollow)
-    }
+                   author?.followers?.any { it.follower?.id == currentUser.id } == true
+
+    val profileDto = author?.let { ProfileDto(it.username, it.bio, it.image, isFollow) }
 
     return ArticleDto(
         slug = slug,
